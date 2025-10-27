@@ -11,6 +11,28 @@ const { createWriteStream } = require('fs');
 const { pipeline } = require('stream');
 const { AutomaticSpeechRecognitionPipeline, pipeline: transformersPipeline } = require('@xenova/transformers');
 
+/**
+ * ⚖️ LEGAL WARNING ⚖️
+ * 
+ * This bot records voice communications. Before using:
+ * 
+ * 1. READ LEGAL_NOTICE.md completely
+ * 2. Ensure you comply with Discord's Terms of Service
+ * 3. Obtain consent from all users being recorded
+ * 4. Comply with local recording laws (two-party consent states, GDPR, etc.)
+ * 5. Have a clear privacy policy
+ * 6. Inform users they are being monitored
+ * 
+ * Unauthorized recording may be ILLEGAL and result in:
+ * - Criminal charges
+ * - Civil lawsuits
+ * - Discord ban
+ * - Financial penalties
+ * 
+ * YOU are solely responsible for legal compliance.
+ * Developers assume NO liability for your use of this software.
+ */
+
 // Initialize local Whisper model (FREE - runs locally)
 let whisperModel = null;
 
@@ -51,6 +73,12 @@ const monitoredChannels = new Set();
 client.once('ready', async () => {
   console.log(`✅ Bot logged in as ${client.user.tag}`);
   console.log('🎤 Voice monitoring active');
+  console.log('');
+  console.log('⚖️  LEGAL REMINDER:');
+  console.log('⚠️  Ensure you have user consent before monitoring');
+  console.log('⚠️  Comply with Discord TOS and local recording laws');
+  console.log('⚠️  See LEGAL_NOTICE.md for full requirements');
+  console.log('');
   await initializeWhisper();
 });
 
@@ -111,6 +139,18 @@ async function monitorVoiceChannel(channel) {
     
     connection.on(VoiceConnectionStatus.Ready, () => {
       console.log(`🔊 Connected to voice channel: ${channel.name} (${channel.guild.name})`);
+      
+      // Send monitoring notice to text channel
+      const textChannel = channel.guild.channels.cache.find(
+        ch => ch.name === 'general' || ch.name === 'mod-logs' || ch.type === 0
+      );
+      if (textChannel) {
+        textChannel.send(
+          `⚠️ **Voice Monitoring Active**\n` +
+          `Voice channel **${channel.name}** is now being monitored for moderation purposes.\n` +
+          `By remaining in this channel, you consent to audio monitoring as outlined in our server rules.`
+        ).catch(err => console.log('Could not send monitoring notice'));
+      }
       
       // Start listening to users
       connection.receiver.speaking.on('start', (userId) => {

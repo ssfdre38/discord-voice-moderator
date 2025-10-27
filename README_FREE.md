@@ -1,6 +1,19 @@
 # Discord Voice Moderator Bot - FREE VERSION
 
+⚠️ **[READ LEGAL NOTICE FIRST](LEGAL_NOTICE.md)** - Voice recording has serious legal implications. You MUST comply with Discord TOS and local laws.
+
 A Discord bot that monitors **multiple voice channels simultaneously**, transcribes speech using **FREE local AI**, and automatically kicks users who violate community guidelines.
+
+## 🚨 IMPORTANT DISCLAIMERS
+
+**LEGAL REQUIREMENTS:**
+- ✅ You MUST obtain consent before recording voice communications
+- ✅ You MUST comply with Discord's Terms of Service
+- ✅ You MUST comply with local recording laws (varies by jurisdiction)
+- ✅ You MUST have a clear privacy policy
+- ✅ You MUST inform users they are being monitored
+
+**See [LEGAL_NOTICE.md](LEGAL_NOTICE.md) for complete legal requirements.**
 
 ## 🌟 Key Features
 

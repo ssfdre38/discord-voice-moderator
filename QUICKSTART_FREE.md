@@ -79,11 +79,15 @@ const BANNED_PHRASES = [
 
 ## ⚠️ Important
 
+⚠️ **LEGAL NOTICE**: Read [LEGAL_NOTICE.md](LEGAL_NOTICE.md) before deployment!
+
 - **First run takes 1-2 minutes** (downloads AI model)
 - **After that it's instant**
 - **All processing is local** (no cloud costs)
 - **Can monitor 3-5 channels** comfortably
 - **Always inform users** they're being recorded
+- **You MUST comply with Discord TOS and local laws**
+- **You MUST obtain consent from users**
 
 ## 🎯 Test It
 
