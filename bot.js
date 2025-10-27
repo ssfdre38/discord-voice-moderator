@@ -232,6 +232,28 @@ async function processAudio(audioFile, member, channel) {
     if (text.length > 0) {
       console.log(`📝 [${channel.name}] ${member.user.tag}: "${text}"`);
       
+      // Optional: Log all transcriptions to mod channel (set in .env)
+      if (process.env.LOG_ALL_TRANSCRIPTS === 'true') {
+        const logChannel = channel.guild.channels.cache.find(
+          ch => ch.name === 'voice-logs' || ch.name === 'transcripts'
+        );
+        if (logChannel) {
+          logChannel.send({
+            embeds: [{
+              title: '🎙️ Voice Transcript',
+              color: 0x3498db, // Blue
+              fields: [
+                { name: 'User', value: member.user.tag, inline: true },
+                { name: 'Channel', value: channel.name, inline: true },
+                { name: 'Message', value: text.substring(0, 1000), inline: false }
+              ],
+              timestamp: new Date(),
+              footer: { text: 'Voice Monitoring' }
+            }]
+          }).catch(err => console.log('Could not send transcript log'));
+        }
+      }
+      
       // Check for violations
       const violation = checkForViolations(text);
       
@@ -271,20 +293,58 @@ function checkForViolations(text) {
 // Handle violation - kick user
 async function handleViolation(member, channel, text, violation) {
   try {
-    // Send warning message
+    // Find mod log channel (multiple names supported)
     const logChannel = member.guild.channels.cache.find(
-      ch => ch.name === 'mod-logs' || ch.name === 'moderation'
+      ch => ch.name === 'mod-logs' || 
+            ch.name === 'moderation' || 
+            ch.name === 'mod-log' ||
+            ch.name === 'voice-logs' ||
+            ch.name === 'logs'
     );
     
     if (logChannel) {
+      // Create embed for better formatting
       await logChannel.send({
-        content: `🚨 **Voice Moderation Alert**\n` +
-                `**User:** ${member.user.tag} (${member.id})\n` +
-                `**Channel:** ${channel.name}\n` +
-                `**Violation:** Used banned phrase: "${violation}"\n` +
-                `**Transcript:** "${text}"\n` +
-                `**Action:** User has been kicked from voice`
+        embeds: [{
+          title: '🚨 Voice Moderation Alert',
+          color: 0xff0000, // Red
+          fields: [
+            {
+              name: '👤 User',
+              value: `${member.user.tag} (${member.user.id})`,
+              inline: true
+            },
+            {
+              name: '📍 Channel',
+              value: channel.name,
+              inline: true
+            },
+            {
+              name: '⚠️ Violation',
+              value: `Used banned phrase: \`${violation}\``,
+              inline: false
+            },
+            {
+              name: '📝 Full Transcript',
+              value: `"${text.substring(0, 1000)}"${text.length > 1000 ? '...' : ''}`,
+              inline: false
+            },
+            {
+              name: '🔨 Action Taken',
+              value: 'User kicked from voice channel',
+              inline: false
+            }
+          ],
+          timestamp: new Date(),
+          footer: {
+            text: 'Voice Moderation System'
+          }
+        }]
       });
+    } else {
+      // If no log channel found, log to console with warning
+      console.log('⚠️ No mod-logs channel found! Create a channel named "mod-logs" to receive alerts.');
+      console.log(`🚨 VIOLATION: ${member.user.tag} in ${channel.name} - "${violation}"`);
     }
     
     // Kick from voice channel
@@ -293,11 +353,13 @@ async function handleViolation(member, channel, text, violation) {
       console.log(`✅ Kicked ${member.user.tag} from voice channel`);
     }
     
-    // Optionally: send DM to user
+    // Send DM to user
     try {
       await member.send(
         `⚠️ You have been removed from the voice channel in **${member.guild.name}** ` +
-        `for violating community guidelines. Please review the server rules.`
+        `for violating community guidelines. Please review the server rules.\n\n` +
+        `**Violation:** Used prohibited language\n` +
+        `**Time:** ${new Date().toLocaleString()}`
       );
     } catch (e) {
       console.log('Could not DM user');
@@ -391,6 +453,67 @@ client.on('messageCreate', async (message) => {
     }
     
     message.reply(`📊 **Monitoring ${voiceConnections.size} channel(s)**:\n${channels.join('\n')}`);
+  }
+  
+  // !setlogs - Set the log channel for violations
+  if (command === 'setlogs') {
+    if (!message.member.permissions.has(PermissionFlagsBits.Administrator)) {
+      return message.reply('❌ You need administrator permissions!');
+    }
+    
+    const channelMention = message.mentions.channels.first();
+    if (!channelMention) {
+      return message.reply('❌ Please mention a channel: `!setlogs #mod-logs`');
+    }
+    
+    // Rename channel to mod-logs (or note it)
+    message.reply(
+      `✅ Bot will send violation logs to ${channelMention}!\n` +
+      `💡 **Tip**: Name your channel one of these for automatic detection:\n` +
+      `• \`mod-logs\` (recommended)\n` +
+      `• \`moderation\`\n` +
+      `• \`mod-log\`\n` +
+      `• \`voice-logs\`\n` +
+      `• \`logs\``
+    );
+  }
+  
+  // !testlog - Send a test log message
+  if (command === 'testlog') {
+    if (!message.member.permissions.has(PermissionFlagsBits.Administrator)) {
+      return message.reply('❌ You need administrator permissions!');
+    }
+    
+    const logChannel = message.guild.channels.cache.find(
+      ch => ch.name === 'mod-logs' || 
+            ch.name === 'moderation' || 
+            ch.name === 'mod-log' ||
+            ch.name === 'voice-logs' ||
+            ch.name === 'logs'
+    );
+    
+    if (!logChannel) {
+      return message.reply(
+        '❌ No log channel found! Please create a channel named `mod-logs` or use `!setlogs #channel`'
+      );
+    }
+    
+    logChannel.send({
+      embeds: [{
+        title: '✅ Test Log Message',
+        description: 'This is a test of the voice moderation logging system.',
+        color: 0x00ff00, // Green
+        fields: [
+          { name: 'Tested By', value: message.author.tag, inline: true },
+          { name: 'Channel', value: logChannel.name, inline: true },
+          { name: 'Status', value: '✅ Logging is working!', inline: false }
+        ],
+        timestamp: new Date(),
+        footer: { text: 'Voice Moderation System' }
+      }]
+    });
+    
+    message.reply(`✅ Test log sent to ${logChannel}!`);
   }
 });
 

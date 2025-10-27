@@ -127,6 +127,8 @@ First run will download the Whisper model (~100MB) - this happens once.
 | `!stop` | Stop monitoring your current voice channel |
 | `!stopall` | Stop monitoring ALL voice channels |
 | `!status` | Show which channels are being monitored |
+| `!testlog` | Send a test message to the log channel |
+| `!setlogs #channel` | Set which channel receives violation logs |
 
 ### How It Works
 
@@ -136,8 +138,45 @@ First run will download the Whisper model (~100MB) - this happens once.
 4. Checks text for banned phrases
 5. Takes action if violation detected:
    - Kicks user from voice
-   - Logs to #mod-logs channel
+   - Logs to #mod-logs channel (with full transcript)
    - Sends DM warning to user
+
+## 📊 Logging System
+
+### Create a Log Channel
+
+Create a text channel named one of:
+- `mod-logs` ⭐ (recommended)
+- `moderation`
+- `voice-logs`
+- `logs`
+
+The bot will automatically find it and send violation reports there!
+
+### Test Your Logs
+
+```bash
+!testlog
+```
+
+This sends a test message to verify logging is working.
+
+### Violation Log Format
+
+When someone violates rules, mods see:
+```
+🚨 Voice Moderation Alert
+
+👤 User: BadUser#1234 (123456789)
+📍 Channel: Gaming Voice
+⚠️ Violation: Used banned phrase: `bad word`
+📝 Full Transcript: "what the user actually said"
+🔨 Action Taken: User kicked from voice channel
+
+Timestamp: 2025-10-27 8:30 PM
+```
+
+**See [LOGGING_GUIDE.md](LOGGING_GUIDE.md) for complete logging setup.**
 
 ## 🔧 Multi-Channel Support
 

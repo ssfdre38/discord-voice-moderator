@@ -35,6 +35,7 @@ npm start
 | `!stop` | Stop monitoring your voice channel |
 | `!stopall` | Stop monitoring ALL channels |
 | `!status` | Show what's being monitored |
+| `!testlog` | Test the logging system |
 
 ## 🔥 Multi-Channel Example
 
@@ -91,11 +92,13 @@ const BANNED_PHRASES = [
 
 ## 🎯 Test It
 
-1. Start bot: `npm start`
-2. Join voice channel
-3. Type: `!monitor`
-4. Say a banned phrase
-5. Bot kicks you + logs it
+1. **Create log channel**: Name it `mod-logs`
+2. **Test logging**: `!testlog`
+3. **Start bot**: `npm start`
+4. **Join voice channel**
+5. **Start monitoring**: `!monitor`
+6. Say a banned phrase
+7. Check `#mod-logs` for the violation report!
 
 ## 💡 Tips
 
