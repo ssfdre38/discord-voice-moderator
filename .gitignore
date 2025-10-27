@@ -6,3 +6,12 @@ audio/
 *.mp3
 *.wav
 .DS_Store
+
+# Session and temporary files
+*SESSION*.md
+*COMPLETE*.md
+*STATUS*.txt
+*SUMMARY*.txt
+*QUICK_REFERENCE*.txt
+*QUICK_ACCESS*.txt
+PROJECT_SUMMARY.md
