@@ -1,62 +1,68 @@
-# Quick Start Guide
+# Quick Start Guide - FREE Multi-Channel Version
 
-## Setup Steps
+## 🚀 Super Fast Setup
 
-1. **Install FFmpeg** (required for audio processing):
-   ```bash
-   sudo apt-get update && sudo apt-get install -y ffmpeg
-   ```
-
-2. **Create .env file** with your credentials:
-   ```bash
-   cp .env.example .env
-   nano .env
-   ```
-   Add your:
-   - Discord Bot Token (from https://discord.com/developers/applications)
-   - OpenAI API Key (from https://platform.openai.com/api-keys)
-
-3. **Start the bot**:
-   ```bash
-   npm start
-   ```
-
-## Bot Setup
-
-### Create Discord Bot:
-1. Visit https://discord.com/developers/applications
-2. Click "New Application"
-3. Go to "Bot" → "Add Bot"
-4. Enable Privileged Intents:
-   - ✅ SERVER MEMBERS INTENT
-   - ✅ MESSAGE CONTENT INTENT
-5. Copy token
-
-### Invite Bot to Server:
-Use this URL (replace CLIENT_ID with your application ID):
-```
-https://discord.com/api/oauth2/authorize?client_id=CLIENT_ID&permissions=19530752&scope=bot
+### 1. Install FFmpeg
+```bash
+sudo apt-get update && sudo apt-get install -y ffmpeg
 ```
 
-Required Permissions:
-- Connect
-- Speak  
-- Use Voice Activity
-- Kick Members
-- Send Messages
-- Read Message History
+### 2. Configure Bot
+```bash
+cp .env.example .env
+nano .env
+```
 
-## Usage
+Add your Discord bot token:
+```env
+DISCORD_TOKEN=your_bot_token_here
+AUTO_MONITOR=false
+```
 
-1. Join a voice channel
-2. Type `!monitor` (admin only)
-3. Bot joins and starts monitoring
-4. Speaks in voice → Transcribed → Checked for violations
-5. Type `!stop` to stop monitoring
+### 3. Start Bot
+```bash
+npm start
+```
 
-## Customize Moderation
+**First run**: Downloads AI model (~100MB) - happens once
+**After that**: Starts instantly!
 
-Edit `bot.js` line 27-32:
+## 🎮 Commands
+
+| Command | What It Does |
+|---------|--------------|
+| `!monitor` | Start monitoring your voice channel |
+| `!stop` | Stop monitoring your voice channel |
+| `!stopall` | Stop monitoring ALL channels |
+| `!status` | Show what's being monitored + word count |
+| `!reload` | Reload banned words file |
+| `!testlog` | Test the logging system |
+
+## 🔥 Multi-Channel Example
+
+```
+Admin joins "Gaming" voice → !monitor
+Admin joins "Music" voice → !monitor  
+Admin joins "Study" voice → !monitor
+
+!status
+> Monitoring 3 channel(s):
+> • Gaming (5 users)
+> • Music (3 users)
+> • Study (2 users)
+```
+
+## ⚙️ Key Features
+
+✅ **FREE** - No API costs, runs locally
+✅ **Multi-Channel** - Monitor multiple channels simultaneously
+✅ **Fast** - Uses lightweight Whisper model
+✅ **Automatic** - Auto-kicks violators
+✅ **Logging** - Posts to #mod-logs
+
+## 📝 Customize Banned Words
+
+Edit `bot.js` (line 30):
 ```javascript
 const BANNED_PHRASES = [
   'add your',
@@ -65,18 +71,77 @@ const BANNED_PHRASES = [
 ];
 ```
 
-## Test It
+The bot now reads from `banned_words.txt` file:
 
-1. Have bot join voice channel
-2. Say a banned phrase
-3. Bot should kick you and log to #mod-logs
+```bash
+nano banned_words.txt
+```
 
-## Important Warning ⚠️
+Add one phrase per line:
+```txt
+bad word
+offensive phrase
+inappropriate content
+```
 
-**Legal Notice**: Recording voice chat may be illegal without consent in your jurisdiction. Always:
-- Inform users they are being recorded
-- Get proper consent
-- Follow local laws (GDPR, wiretapping laws, etc.)
-- Review Discord Terms of Service
+Reload without restarting:
+```
+!reload
+```
 
-**This is for educational purposes only. Use responsibly.**
+**See [BANNED_WORDS_GUIDE.md](BANNED_WORDS_GUIDE.md) for details.**
+
+## 🤖 How It Works
+
+1. Bot joins voice channel(s) 
+2. Records when users speak
+3. Converts speech → text (locally, FREE!)
+4. Checks for banned words
+5. Kicks violators + logs incident
+
+## ⚠️ Important
+
+⚠️ **LEGAL NOTICE**: Read [LEGAL_NOTICE.md](LEGAL_NOTICE.md) before deployment!
+
+- **First run takes 1-2 minutes** (downloads AI model)
+- **After that it's instant**
+- **All processing is local** (no cloud costs)
+- **Can monitor 3-5 channels** comfortably
+- **Always inform users** they're being recorded
+- **You MUST comply with Discord TOS and local laws**
+- **You MUST obtain consent from users**
+
+## 🎯 Test It
+
+1. **Create log channel**: Name it `mod-logs`
+2. **Test logging**: `!testlog`
+3. **Start bot**: `npm start`
+4. **Join voice channel**
+5. **Start monitoring**: `!monitor`
+6. Say a banned phrase
+7. Check `#mod-logs` for the violation report!
+
+## 💡 Tips
+
+- Use `AUTO_MONITOR=true` to auto-join all channels
+- Use `AUTO_MONITOR=false` for manual control
+- Check `!status` to see active monitoring
+- Use `!stopall` to reset everything
+
+## 🆘 Troubleshooting
+
+**Bot doesn't hear me**:
+- Check bot permissions (Connect, Speak)
+- Make sure you're speaking (not muted)
+
+**Model takes forever to load**:
+- First run only! Downloads 100MB
+- Cached after that
+
+**Bot crashes with multiple channels**:
+- Check RAM (needs 2-4GB)
+- Try monitoring fewer channels
+
+---
+
+**No API keys. No subscriptions. 100% FREE forever.** 🎉

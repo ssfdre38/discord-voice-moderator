@@ -1,147 +1,283 @@
 # Discord Voice Moderator Bot
 
-A Discord bot that monitors voice chats, transcribes speech, and automatically kicks users who violate community guidelines.
+⚠️ **[READ LEGAL NOTICE FIRST](LEGAL_NOTICE.md)** - Voice recording has serious legal implications. You MUST comply with Discord TOS and local laws.
 
-## Features
+A Discord bot that monitors **multiple voice channels simultaneously**, transcribes speech using **FREE local AI**, and automatically kicks users who violate community guidelines.
 
-- 🎤 **Real-time Voice Monitoring**: Joins voice channels and listens to conversations
-- 🗣️ **Speech-to-Text**: Uses OpenAI Whisper to transcribe audio
-- 🚨 **Automated Moderation**: Kicks users who use banned words/phrases
-- 📝 **Logging**: Sends detailed moderation logs to a designated channel
-- ⚡ **Automatic Join**: Bot joins when users enter voice channels
-- 🔒 **Permission-based**: Requires admin permissions to control
+## 🚨 IMPORTANT DISCLAIMERS
 
-## Requirements
+**LEGAL REQUIREMENTS:**
+- ✅ You MUST obtain consent before recording voice communications
+- ✅ You MUST comply with Discord's Terms of Service
+- ✅ You MUST comply with local recording laws (varies by jurisdiction)
+- ✅ You MUST have a clear privacy policy
+- ✅ You MUST inform users they are being monitored
+
+**See [LEGAL_NOTICE.md](LEGAL_NOTICE.md) for complete legal requirements.**
+
+## 🌟 Key Features
+
+- 🎤 **Multi-Channel Support**: Monitor multiple voice channels at the same time
+- 💰 **100% FREE**: Uses local Whisper AI model (no API costs!)
+- 🗣️ **Speech-to-Text**: Automatic transcription using Transformers.js
+- 🚨 **Auto-Moderation**: Kicks users who use banned words/phrases
+- 📝 **Logging**: Detailed moderation logs
+- ⚡ **Concurrent Processing**: Handles multiple channels/users simultaneously
+- 🔒 **Permission-based**: Admin-only controls
+
+## 📋 Requirements
 
 - Node.js 16.x or higher
 - FFmpeg installed on system
 - Discord Bot Token
-- OpenAI API Key (for Whisper transcription)
+- **NO API keys needed!** Everything runs locally
 
-## Installation
+## 🚀 Installation
 
-1. **Clone/Download this project**
+### 1. Install FFmpeg
 
-2. **Install FFmpeg**:
-   ```bash
-   # Ubuntu/Debian
-   sudo apt-get update
-   sudo apt-get install ffmpeg
-   
-   # macOS
-   brew install ffmpeg
-   
-   # Windows
-   # Download from https://ffmpeg.org/download.html
-   ```
+```bash
+# Ubuntu/Debian
+sudo apt-get update
+sudo apt-get install ffmpeg
 
-3. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+# macOS
+brew install ffmpeg
 
-4. **Create a Discord Bot**:
-   - Go to https://discord.com/developers/applications
-   - Click "New Application"
-   - Go to "Bot" section
-   - Click "Add Bot"
-   - Enable these Privileged Gateway Intents:
-     - SERVER MEMBERS INTENT
-     - MESSAGE CONTENT INTENT
-   - Copy the bot token
-
-5. **Get OpenAI API Key**:
-   - Go to https://platform.openai.com/api-keys
-   - Create a new API key
-   - Copy the key
-
-6. **Configure environment variables**:
-   Create a `.env` file:
-   ```env
-   DISCORD_TOKEN=your_discord_bot_token_here
-   OPENAI_API_KEY=your_openai_api_key_here
-   ```
-
-7. **Customize banned phrases**:
-   Edit `bot.js` and modify the `BANNED_PHRASES` array:
-   ```javascript
-   const BANNED_PHRASES = [
-     'bad word 1',
-     'bad word 2',
-     'inappropriate phrase',
-     // Add your moderation rules here
-   ];
-   ```
-
-8. **Invite bot to server**:
-   - Go to OAuth2 > URL Generator
-   - Select scopes: `bot`
-   - Select permissions:
-     - Connect
-     - Speak
-     - Use Voice Activity
-     - Kick Members
-     - Send Messages
-     - Read Message History
-   - Copy and use the generated URL
-
-## Usage
-
-1. **Start the bot**:
-   ```bash
-   node bot.js
-   ```
-
-2. **Commands** (Admin only):
-   - `!monitor` - Bot joins your voice channel and starts monitoring
-   - `!stop` - Bot leaves voice channel and stops monitoring
-
-3. **Automatic Monitoring**:
-   - Bot automatically joins voice channels when users join
-   - Transcribes speech in real-time
-   - Kicks users who violate rules
-   - Sends logs to `#mod-logs` or `#moderation` channel
-
-## How It Works
-
-1. Bot joins a voice channel
-2. Listens to each user's audio stream
-3. Saves audio temporarily when user speaks
-4. Converts audio to text using OpenAI Whisper
-5. Checks transcription against banned phrases
-6. If violation detected:
-   - Kicks user from voice
-   - Logs incident
-   - Sends DM to user (if possible)
-7. Cleans up temporary audio files
-
-## Configuration Options
-
-### Moderation Rules
-
-Edit `BANNED_PHRASES` in `bot.js`:
-```javascript
-const BANNED_PHRASES = [
-  'explicit word',
-  'hate speech',
-  'threatening language',
-  // Add more phrases
-];
+# Windows
+# Download from https://ffmpeg.org/download.html
 ```
 
-### Silence Detection
+### 2. Install Dependencies
 
-Adjust silence duration before processing (in `listenToUser` function):
+```bash
+cd discord-voice-moderator
+npm install
+```
+
+### 3. Create Discord Bot
+
+1. Go to https://discord.com/developers/applications
+2. Click "New Application"
+3. Go to "Bot" section → "Add Bot"
+4. Enable these Privileged Gateway Intents:
+   - ✅ **SERVER MEMBERS INTENT**
+   - ✅ **MESSAGE CONTENT INTENT**
+5. Copy the bot token
+
+### 4. Configure Bot
+
+Create a `.env` file:
+```bash
+cp .env.example .env
+nano .env
+```
+
+Add your Discord bot token:
+```env
+DISCORD_TOKEN=your_discord_bot_token_here
+AUTO_MONITOR=false
+```
+
+**AUTO_MONITOR options**:
+- `false` = Manual control with `!monitor` command
+- `true` = Auto-join when users enter voice channels
+
+### 5. Customize Moderation Rules
+
+The bot reads banned words from `banned_words.txt`:
+
+```bash
+nano banned_words.txt
+```
+
+Add your banned words (one per line):
+```txt
+inappropriate word
+offensive phrase
+harassment example
+```
+
+The file comes pre-populated with examples. **Customize for your community!**
+
+**See [BANNED_WORDS_GUIDE.md](BANNED_WORDS_GUIDE.md) for detailed configuration guide.**
+
+### 6. Invite Bot to Server
+
+Use this URL (replace `YOUR_CLIENT_ID`):
+```
+https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=19530752&scope=bot
+```
+
+Required permissions:
+- Connect
+- Speak
+- Use Voice Activity
+- Kick Members
+- Send Messages
+- Read Message History
+
+## 🎮 Usage
+
+### Start the Bot
+
+```bash
+npm start
+```
+
+First run will download the Whisper model (~100MB) - this happens once.
+
+### Commands (Admin Only)
+
+| Command | Description |
+|---------|-------------|
+| `!monitor` | Join and monitor your current voice channel |
+| `!stop` | Stop monitoring your current voice channel |
+| `!stopall` | Stop monitoring ALL voice channels |
+| `!status` | Show which channels are being monitored + banned word count |
+| `!reload` | Reload banned words from banned_words.txt |
+| `!listbanned` | Show first 10 banned phrases (admin only) |
+| `!testlog` | Send a test message to the log channel |
+| `!setlogs #channel` | Set which channel receives violation logs |
+
+### How It Works
+
+1. Bot joins voice channel(s)
+2. Listens to each user speaking
+3. Converts speech to text locally (FREE!)
+4. Checks text for banned phrases
+5. Takes action if violation detected:
+   - Kicks user from voice
+   - Logs to #mod-logs channel (with full transcript)
+   - Sends DM warning to user
+
+## 📊 Logging System
+
+### Create a Log Channel
+
+Create a text channel named one of:
+- `mod-logs` ⭐ (recommended)
+- `moderation`
+- `voice-logs`
+- `logs`
+
+The bot will automatically find it and send violation reports there!
+
+### Test Your Logs
+
+```bash
+!testlog
+```
+
+This sends a test message to verify logging is working.
+
+### Violation Log Format
+
+When someone violates rules, mods see an **interactive message** with action buttons:
+
+```
+🚨 Voice Moderation Alert
+
+👤 User: BadUser#1234 (123456789)
+📍 Channel: Gaming Voice
+⚠️ Violation: Used banned phrase: `bad word`
+📝 Full Transcript: "what the user actually said"
+⏳ Status: Awaiting moderator action...
+
+[🦵 Kick from Voice] [⏰ Timeout (5m)] [🔨 Ban User] [⚠️ Warn Only] [✅ Ignore]
+```
+
+**Moderators click a button** to choose the action:
+- 🦵 **Kick from Voice** - Remove from voice channel
+- ⏰ **Timeout** - 5-minute timeout + voice kick
+- 🔨 **Ban** - Permanently ban from server
+- ⚠️ **Warn** - Send DM warning only
+- ✅ **Ignore** - No action (false positive)
+
+After clicking, the message updates with the action taken and who did it.
+
+**See [MODERATION_ACTIONS.md](MODERATION_ACTIONS.md) for complete action guide.**
+
+## 🔧 Multi-Channel Support
+
+The bot can monitor **multiple voice channels simultaneously**:
+
+```bash
+# Admin in Channel 1
+!monitor
+
+# Admin in Channel 2  
+!monitor
+
+# Admin in Channel 3
+!monitor
+
+# Check status
+!status
+# Output: Monitoring 3 channel(s)
+```
+
+Each channel is processed independently with its own connection.
+
+## 📊 Example Scenarios
+
+### Scenario 1: Monitor Multiple Channels
+```
+User A joins "Gaming Chat" → Admin types !monitor
+User B joins "Music Chat" → Admin types !monitor
+Bot now monitors both channels simultaneously
+```
+
+### Scenario 2: Automatic Violation Handling
+```
+User says banned phrase in "Gaming Chat"
+→ Bot transcribes: "user said bad word"
+→ Bot detects violation
+→ User kicked from voice
+→ Log sent to #mod-logs
+```
+
+### Scenario 3: Stop Specific Channel
+```
+Admin in "Gaming Chat" types !stop
+→ Bot leaves "Gaming Chat"
+→ Bot continues monitoring "Music Chat"
+```
+
+## ⚙️ Configuration
+
+### Moderation Mode
+
+Choose how violations are handled:
+
+```env
+# .env file
+
+# Manual mode - Moderators click buttons to choose action (recommended)
+AUTO_ACTION=manual
+
+# Auto modes - Bot takes action automatically:
+AUTO_ACTION=auto-kick      # Auto-kick from voice
+AUTO_ACTION=auto-timeout   # Auto-timeout for 5 minutes
+AUTO_ACTION=auto-ban       # Auto-ban from server  
+AUTO_ACTION=auto-warn      # Send warning DM only
+```
+
+**See [MODERATION_ACTIONS.md](MODERATION_ACTIONS.md) for detailed action guide.**
+
+### Adjust Silence Detection
+
+In `bot.js` → `listenToUser()`:
 ```javascript
 end: {
   behavior: EndBehaviorType.AfterSilence,
-  duration: 1000  // milliseconds (default: 1 second)
+  duration: 1000  // milliseconds (1 second)
 }
 ```
 
-### Audio Quality
+### Audio Quality Settings
 
-Modify audio settings in the decoder:
+In `bot.js` → `listenToUser()`:
 ```javascript
 const decoder = new prism.opus.Decoder({
   rate: 48000,     // Sample rate
@@ -150,80 +286,130 @@ const decoder = new prism.opus.Decoder({
 });
 ```
 
-## Important Notes
+### Change Whisper Model
 
-⚠️ **Legal & Privacy Considerations**:
-- Recording voice chat may be illegal in some jurisdictions
-- Always inform users they are being recorded
-- Comply with Discord's Terms of Service
-- Follow data privacy regulations (GDPR, etc.)
-- Consider requiring user consent
+In `bot.js` → `initializeWhisper()`:
+```javascript
+// Options (from fastest/least accurate to slowest/most accurate):
+// 'Xenova/whisper-tiny.en'      ← Default (fast, good for real-time)
+// 'Xenova/whisper-base.en'      ← Better accuracy
+// 'Xenova/whisper-small.en'     ← Best accuracy (slower)
+```
 
-⚠️ **Cost Warning**:
-- OpenAI Whisper API charges per audio minute
-- Monitor usage to avoid unexpected charges
-- Consider implementing rate limiting
+## 🛠️ Troubleshooting
 
-⚠️ **Performance**:
-- Processing audio takes time (~1-3 seconds per clip)
-- Bot requires good CPU/network for multiple users
-- Audio files are temporarily stored (ensure disk space)
-
-## Troubleshooting
-
-### Bot doesn't hear audio:
+### Bot doesn't hear audio
 - Ensure bot has "Connect" and "Speak" permissions
-- Check voice channel user limit
-- Verify `selfDeaf: false` in connection settings
+- Check voice channel isn't at user limit
+- Verify `selfDeaf: false` in code
 
-### FFmpeg errors:
-- Ensure FFmpeg is installed: `ffmpeg -version`
-- Add FFmpeg to system PATH
-- Check audio file permissions
+### Model loading is slow
+- First run downloads model (~100MB)
+- Model is cached locally after first download
+- Subsequent runs are fast
 
-### OpenAI API errors:
-- Verify API key is correct
-- Check API quota/billing
-- Ensure audio file format is compatible
-
-### Bot kicks itself:
-- Bot ignores other bots by default
-- Check bot role permissions
-
-## Advanced Features (Optional Enhancements)
-
-### Add database logging:
+### FFmpeg errors
 ```bash
-npm install sqlite3
+# Check FFmpeg is installed
+ffmpeg -version
+
+# Ensure it's in PATH
+which ffmpeg  # Linux/Mac
+where ffmpeg  # Windows
 ```
 
-### Add web dashboard:
-```bash
-npm install express
+### Bot crashes on multiple channels
+- Check system resources (CPU/RAM)
+- Consider using faster Whisper model
+- Increase silence detection duration
+
+## 💡 Performance Tips
+
+1. **Model Selection**: Use `whisper-tiny.en` for real-time (default)
+2. **Silence Duration**: Increase to reduce processing load
+3. **Channel Limit**: Monitor 3-5 channels max per bot instance
+4. **Hardware**: 4GB RAM minimum, 8GB recommended
+
+## 🔒 Legal & Privacy
+
+⚠️ **Important Warnings**:
+
+1. **Recording Laws**: Voice recording may be illegal without consent in your jurisdiction
+2. **User Notice**: Always inform users they are being recorded
+3. **Data Privacy**: Comply with GDPR, CCPA, and local privacy laws
+4. **Discord TOS**: Ensure compliance with Discord's Terms of Service
+5. **Consent**: Consider requiring user consent before monitoring
+
+**Recommended**: Add a message when bot joins:
+```
+"⚠️ This voice channel is being monitored for moderation purposes. 
+By staying in this channel, you consent to audio monitoring."
 ```
 
-### Use alternative STT:
-- Google Cloud Speech-to-Text
-- Azure Speech Services
-- Local Vosk/Whisper model
+## 📈 Cost Comparison
 
-## Support
+| Solution | Cost | Speed |
+|----------|------|-------|
+| **This Bot (Local Whisper)** | $0 | Fast |
+| OpenAI Whisper API | ~$0.006/min | Very Fast |
+| Google Speech-to-Text | ~$0.006/min | Very Fast |
+| Azure Speech | ~$0.001/min | Fast |
 
-For issues or questions:
-1. Check Discord.js documentation: https://discord.js.org
-2. Check OpenAI API docs: https://platform.openai.com/docs
-3. Verify bot permissions in Discord
+**This bot costs $0** and runs entirely on your hardware!
 
-## License
+## 🚀 Advanced Features
+
+### Add Database Logging
+```bash
+npm install better-sqlite3
+```
+
+### Add Web Dashboard
+```bash
+npm install express ejs
+```
+
+### Use Better Model Accuracy
+Change to `whisper-small.en` for better transcription (slower)
+
+## 📚 Resources
+
+- Discord.js Docs: https://discord.js.org
+- Transformers.js: https://huggingface.co/docs/transformers.js
+- FFmpeg: https://ffmpeg.org/documentation.html
+
+## 🤝 Support
+
+Having issues? Check:
+1. Bot has proper permissions
+2. FFmpeg is installed and in PATH
+3. Enough disk space for audio files
+4. Node.js version 16+
+
+## 📄 License
 
 MIT License - Use at your own risk
 
-## Disclaimer
+## ⚖️ Disclaimer
 
-This bot is for educational purposes. Server owners are responsible for:
+This bot is for **educational purposes only**. You are responsible for:
 - Legal compliance with recording laws
 - User privacy and consent
-- Appropriate use of moderation features
+- Appropriate use of moderation
 - Following Discord's Terms of Service
 
-**Use responsibly and ethically.**
+**Use responsibly, ethically, and legally.**
+
+---
+
+## 🎯 Quick Start Summary
+
+1. Install FFmpeg
+2. `npm install`
+3. Create `.env` with Discord token
+4. `npm start`
+5. Join voice channel
+6. Type `!monitor`
+7. Bot monitors and moderates automatically!
+
+**No API costs. No subscriptions. 100% FREE. Multiple channels supported.** ✨
