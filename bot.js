@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, PermissionFlagsBits } = require('discord.js');
+const { Client, GatewayIntentBits, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const {
   joinVoiceChannel,
   EndBehaviorType,
@@ -60,6 +60,10 @@ const BANNED_PHRASES = [
   'inappropriate phrase',
   // Add your moderation rules here
 ];
+
+// Auto-action mode: what to do when violation detected
+// Options: 'manual' (ask mods), 'auto-kick', 'auto-timeout', 'auto-ban', 'auto-warn'
+const AUTO_ACTION = process.env.AUTO_ACTION || 'manual';
 
 // Store active voice connections (supports multiple channels)
 const voiceConnections = new Map(); // guildId+channelId -> connection
@@ -290,7 +294,7 @@ function checkForViolations(text) {
   return null;
 }
 
-// Handle violation - kick user
+// Handle violation - present options to moderators
 async function handleViolation(member, channel, text, violation) {
   try {
     // Find mod log channel (multiple names supported)
@@ -302,12 +306,53 @@ async function handleViolation(member, channel, text, violation) {
             ch.name === 'logs'
     );
     
-    if (logChannel) {
-      // Create embed for better formatting
+    // Check if auto-action is enabled
+    if (AUTO_ACTION !== 'manual' && logChannel) {
+      // Execute auto-action
+      let actionTaken = '';
+      
+      switch(AUTO_ACTION) {
+        case 'auto-kick':
+          if (member.voice.channel) {
+            await member.voice.disconnect('Auto-moderation: Violated voice chat rules');
+            actionTaken = '🦵 **Auto-kicked from voice channel**';
+          }
+          break;
+          
+        case 'auto-timeout':
+          await member.timeout(5 * 60 * 1000, 'Auto-moderation: Voice chat violation');
+          if (member.voice.channel) {
+            await member.voice.disconnect('Timed out for violation');
+          }
+          actionTaken = '⏰ **Auto-timed out for 5 minutes**';
+          break;
+          
+        case 'auto-ban':
+          await member.ban({ reason: 'Auto-moderation: Voice chat violation' });
+          actionTaken = '🔨 **Auto-banned from server**';
+          break;
+          
+        case 'auto-warn':
+          try {
+            await member.send(
+              `⚠️ **Warning from ${member.guild.name}**\n\n` +
+              `You have violated our voice chat rules.\n` +
+              `**Violation:** ${violation}\n` +
+              `**Time:** ${new Date().toLocaleString()}\n\n` +
+              `Please review our server rules.`
+            );
+            actionTaken = '⚠️ **Warning sent to user**';
+          } catch (e) {
+            actionTaken = '⚠️ **Warning issued** (could not DM user)';
+          }
+          break;
+      }
+      
+      // Send log with action already taken
       await logChannel.send({
         embeds: [{
-          title: '🚨 Voice Moderation Alert',
-          color: 0xff0000, // Red
+          title: '🚨 Voice Moderation Alert (Auto-Action)',
+          color: 0xff6600, // Orange for auto-action
           fields: [
             {
               name: '👤 User',
@@ -330,45 +375,222 @@ async function handleViolation(member, channel, text, violation) {
               inline: false
             },
             {
-              name: '🔨 Action Taken',
-              value: 'User kicked from voice channel',
+              name: '✅ Action Taken',
+              value: `${actionTaken}\n**Mode:** Automatic\n**Time:** ${new Date().toLocaleString()}`,
               inline: false
             }
           ],
           timestamp: new Date(),
           footer: {
-            text: 'Voice Moderation System'
+            text: 'Voice Moderation System - Auto Mode'
           }
         }]
+      });
+      
+      console.log(`✅ Auto-action taken: ${actionTaken} on ${member.user.tag}`);
+      return;
+    }
+    
+    if (logChannel) {
+      // Manual mode - create embed with action buttons
+      const violationEmbed = {
+        title: '🚨 Voice Moderation Alert',
+        color: 0xff0000, // Red
+        fields: [
+          {
+            name: '👤 User',
+            value: `${member.user.tag} (${member.user.id})`,
+            inline: true
+          },
+          {
+            name: '📍 Channel',
+            value: channel.name,
+            inline: true
+          },
+          {
+            name: '⚠️ Violation',
+            value: `Used banned phrase: \`${violation}\``,
+            inline: false
+          },
+          {
+            name: '📝 Full Transcript',
+            value: `"${text.substring(0, 1000)}"${text.length > 1000 ? '...' : ''}`,
+            inline: false
+          },
+          {
+            name: '⏳ Status',
+            value: '**Awaiting moderator action...**',
+            inline: false
+          }
+        ],
+        timestamp: new Date(),
+        footer: {
+          text: 'Select an action below'
+        }
+      };
+
+      // Create action buttons
+      const actionRow = new ActionRowBuilder()
+        .addComponents(
+          new ButtonBuilder()
+            .setCustomId(`kick_${member.id}`)
+            .setLabel('Kick from Voice')
+            .setStyle(ButtonStyle.Danger)
+            .setEmoji('🦵'),
+          new ButtonBuilder()
+            .setCustomId(`timeout_${member.id}`)
+            .setLabel('Timeout (5m)')
+            .setStyle(ButtonStyle.Primary)
+            .setEmoji('⏰'),
+          new ButtonBuilder()
+            .setCustomId(`ban_${member.id}`)
+            .setLabel('Ban User')
+            .setStyle(ButtonStyle.Danger)
+            .setEmoji('🔨'),
+          new ButtonBuilder()
+            .setCustomId(`warn_${member.id}`)
+            .setLabel('Warn Only')
+            .setStyle(ButtonStyle.Secondary)
+            .setEmoji('⚠️'),
+          new ButtonBuilder()
+            .setCustomId(`ignore_${member.id}`)
+            .setLabel('Ignore')
+            .setStyle(ButtonStyle.Success)
+            .setEmoji('✅')
+        );
+
+      await logChannel.send({
+        embeds: [violationEmbed],
+        components: [actionRow]
       });
     } else {
       // If no log channel found, log to console with warning
       console.log('⚠️ No mod-logs channel found! Create a channel named "mod-logs" to receive alerts.');
       console.log(`🚨 VIOLATION: ${member.user.tag} in ${channel.name} - "${violation}"`);
-    }
-    
-    // Kick from voice channel
-    if (member.voice.channel) {
-      await member.voice.disconnect('Violated voice chat rules');
-      console.log(`✅ Kicked ${member.user.tag} from voice channel`);
-    }
-    
-    // Send DM to user
-    try {
-      await member.send(
-        `⚠️ You have been removed from the voice channel in **${member.guild.name}** ` +
-        `for violating community guidelines. Please review the server rules.\n\n` +
-        `**Violation:** Used prohibited language\n` +
-        `**Time:** ${new Date().toLocaleString()}`
-      );
-    } catch (e) {
-      console.log('Could not DM user');
+      
+      // Auto-kick if no log channel (fallback behavior)
+      if (member.voice.channel) {
+        await member.voice.disconnect('Violated voice chat rules - Auto-moderation');
+        console.log(`✅ Auto-kicked ${member.user.tag} (no mod channel for manual review)`);
+      }
     }
     
   } catch (error) {
     console.error('❌ Error handling violation:', error);
   }
 }
+
+// Handle moderator action button clicks
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isButton()) return;
+  
+  // Check if user has moderator permissions
+  if (!interaction.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
+    return interaction.reply({ 
+      content: '❌ You need moderator permissions to use this!', 
+      ephemeral: true 
+    });
+  }
+  
+  const [action, userId] = interaction.customId.split('_');
+  const member = await interaction.guild.members.fetch(userId).catch(() => null);
+  
+  if (!member) {
+    return interaction.update({
+      content: '❌ User not found or has left the server.',
+      components: []
+    });
+  }
+  
+  let actionTaken = '';
+  let success = false;
+  
+  try {
+    switch(action) {
+      case 'kick':
+        // Kick from voice channel
+        if (member.voice.channel) {
+          await member.voice.disconnect('Violated voice chat rules');
+          actionTaken = '🦵 **Kicked from voice channel**';
+          success = true;
+        } else {
+          actionTaken = '⚠️ User already left voice channel';
+        }
+        break;
+        
+      case 'timeout':
+        // Timeout for 5 minutes
+        await member.timeout(5 * 60 * 1000, 'Voice chat violation');
+        if (member.voice.channel) {
+          await member.voice.disconnect('Timed out for violation');
+        }
+        actionTaken = '⏰ **Timed out for 5 minutes**';
+        success = true;
+        break;
+        
+      case 'ban':
+        // Ban user
+        await member.ban({ reason: 'Voice chat violation' });
+        actionTaken = '🔨 **User banned from server**';
+        success = true;
+        break;
+        
+      case 'warn':
+        // Send warning DM
+        try {
+          await member.send(
+            `⚠️ **Warning from ${interaction.guild.name}**\n\n` +
+            `You have violated our voice chat rules. This is a formal warning.\n` +
+            `Further violations may result in kicks, timeouts, or bans.\n\n` +
+            `Please review our server rules and maintain appropriate conduct.\n` +
+            `**Time:** ${new Date().toLocaleString()}`
+          );
+          actionTaken = '⚠️ **Warning sent to user**';
+          success = true;
+        } catch (e) {
+          actionTaken = '⚠️ **Warning issued** (could not DM user)';
+          success = true;
+        }
+        break;
+        
+      case 'ignore':
+        // Take no action
+        actionTaken = '✅ **No action taken** (false positive)';
+        success = true;
+        break;
+    }
+    
+    // Update the embed with the action taken
+    const updatedEmbed = interaction.message.embeds[0];
+    const fields = [...updatedEmbed.fields];
+    
+    // Update status field
+    fields[fields.length - 1] = {
+      name: '✅ Action Taken',
+      value: `${actionTaken}\n**By:** ${interaction.user.tag}\n**Time:** ${new Date().toLocaleString()}`,
+      inline: false
+    };
+    
+    await interaction.update({
+      embeds: [{
+        ...updatedEmbed,
+        color: success ? 0x00ff00 : 0xff9900, // Green if success, orange if partial
+        fields: fields
+      }],
+      components: [] // Remove buttons after action
+    });
+    
+    // Log action to console
+    console.log(`✅ ${interaction.user.tag} took action: ${actionTaken} on ${member.user.tag}`);
+    
+  } catch (error) {
+    console.error('❌ Error executing moderation action:', error);
+    await interaction.reply({
+      content: `❌ Failed to execute action: ${error.message}`,
+      ephemeral: true
+    });
+  }
+});
 
 // Command handler
 client.on('messageCreate', async (message) => {

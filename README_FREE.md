@@ -163,7 +163,8 @@ This sends a test message to verify logging is working.
 
 ### Violation Log Format
 
-When someone violates rules, mods see:
+When someone violates rules, mods see an **interactive message** with action buttons:
+
 ```
 🚨 Voice Moderation Alert
 
@@ -171,12 +172,21 @@ When someone violates rules, mods see:
 📍 Channel: Gaming Voice
 ⚠️ Violation: Used banned phrase: `bad word`
 📝 Full Transcript: "what the user actually said"
-🔨 Action Taken: User kicked from voice channel
+⏳ Status: Awaiting moderator action...
 
-Timestamp: 2025-10-27 8:30 PM
+[🦵 Kick from Voice] [⏰ Timeout (5m)] [🔨 Ban User] [⚠️ Warn Only] [✅ Ignore]
 ```
 
-**See [LOGGING_GUIDE.md](LOGGING_GUIDE.md) for complete logging setup.**
+**Moderators click a button** to choose the action:
+- 🦵 **Kick from Voice** - Remove from voice channel
+- ⏰ **Timeout** - 5-minute timeout + voice kick
+- 🔨 **Ban** - Permanently ban from server
+- ⚠️ **Warn** - Send DM warning only
+- ✅ **Ignore** - No action (false positive)
+
+After clicking, the message updates with the action taken and who did it.
+
+**See [MODERATION_ACTIONS.md](MODERATION_ACTIONS.md) for complete action guide.**
 
 ## 🔧 Multi-Channel Support
 
@@ -225,6 +235,25 @@ Admin in "Gaming Chat" types !stop
 ```
 
 ## ⚙️ Configuration
+
+### Moderation Mode
+
+Choose how violations are handled:
+
+```env
+# .env file
+
+# Manual mode - Moderators click buttons to choose action (recommended)
+AUTO_ACTION=manual
+
+# Auto modes - Bot takes action automatically:
+AUTO_ACTION=auto-kick      # Auto-kick from voice
+AUTO_ACTION=auto-timeout   # Auto-timeout for 5 minutes
+AUTO_ACTION=auto-ban       # Auto-ban from server  
+AUTO_ACTION=auto-warn      # Send warning DM only
+```
+
+**See [MODERATION_ACTIONS.md](MODERATION_ACTIONS.md) for detailed action guide.**
 
 ### Adjust Silence Detection
 
