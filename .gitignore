@@ -4,4 +4,5 @@ audio/
 *.log
 *.pcm
 *.mp3
+*.wav
 .DS_Store

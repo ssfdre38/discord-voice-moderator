@@ -1,0 +1,118 @@
+# Banned Words and Phrases Configuration
+# 
+# This file contains words and phrases that will trigger moderation actions
+# when detected in voice chat transcriptions.
+#
+# Format:
+# - One phrase per line
+# - Case insensitive (automatically converted to lowercase)
+# - Empty lines and lines starting with # are ignored
+# - Phrases can contain multiple words
+#
+# ⚠️ WARNING: Be careful with single-letter or common words
+# They may cause false positives!
+#
+# Tips:
+# - Be specific with phrases to avoid false positives
+# - Test new phrases before deploying
+# - Review logs regularly for false positives
+# - Consider context (some words may be acceptable in certain contexts)
+#
+# Last Updated: 2025-10-27
+
+# Profanity (Examples - customize for your server)
+damn
+hell
+crap
+ass
+bastard
+
+# Slurs and Hate Speech (Examples - add your own)
+# Note: Add actual slurs relevant to your community
+# We've left these blank for you to fill in based on your server's needs
+
+# Harassment and Threats
+kill yourself
+kys
+die
+threat
+gonna hurt you
+gonna kill
+gonna find you
+doxx
+swat
+
+# Sexual Content (Examples)
+sexual harassment
+inappropriate touching
+send nudes
+dick pic
+
+# Spam Phrases
+join my server
+free money
+get rich quick
+click this link
+check out my
+subscribe to
+
+# Drugs and Illegal Activity (Examples)
+buy drugs
+sell drugs
+need weed
+got pills
+fake id
+
+# Scams and Phishing
+free nitro
+discord nitro free
+steam gift
+paypal money
+venmo me
+
+# Server-Specific Rules
+# Add your own server-specific banned phrases below:
+
+
+# Context-Specific Phrases
+# These might be acceptable in some contexts but not others
+# Review these carefully and adjust as needed
+
+
+# Racial Slurs
+# IMPORTANT: Add actual slurs your community needs to moderate
+# We've left this blank intentionally for you to customize
+
+
+# Homophobic/Transphobic Language
+# Add phrases relevant to your moderation needs
+
+
+# Extreme Examples (Use with caution)
+# Only uncomment if you have zero tolerance
+# bomb threat
+# school shooting
+# terrorist attack
+
+# ============================================
+# CUSTOMIZATION NOTES:
+# ============================================
+#
+# Small Server (Friends/Gaming):
+# - Keep list short (10-20 phrases)
+# - Focus on serious violations only
+# - Allow more casual language
+#
+# Medium Server (Community):
+# - Moderate list (20-50 phrases)
+# - Balance between freedom and safety
+# - Clear rules posted
+#
+# Large Server (Public/Corporate):
+# - Comprehensive list (50+ phrases)
+# - Strict enforcement
+# - Professional environment
+#
+# ============================================
+
+# End of banned words file

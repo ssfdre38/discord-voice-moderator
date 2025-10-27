@@ -34,7 +34,8 @@ npm start
 | `!monitor` | Start monitoring your voice channel |
 | `!stop` | Stop monitoring your voice channel |
 | `!stopall` | Stop monitoring ALL channels |
-| `!status` | Show what's being monitored |
+| `!status` | Show what's being monitored + word count |
+| `!reload` | Reload banned words file |
 | `!testlog` | Test the logging system |
 
 ## 🔥 Multi-Channel Example
@@ -69,6 +70,26 @@ const BANNED_PHRASES = [
   'here'
 ];
 ```
+
+The bot now reads from `banned_words.txt` file:
+
+```bash
+nano banned_words.txt
+```
+
+Add one phrase per line:
+```txt
+bad word
+offensive phrase
+inappropriate content
+```
+
+Reload without restarting:
+```
+!reload
+```
+
+**See [BANNED_WORDS_GUIDE.md](../BANNED_WORDS_GUIDE.md) for details.**
 
 ## 🤖 How It Works
 

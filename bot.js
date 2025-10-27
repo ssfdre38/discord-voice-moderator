@@ -10,6 +10,8 @@ const prism = require('prism-media');
 const { createWriteStream } = require('fs');
 const { pipeline } = require('stream');
 const { AutomaticSpeechRecognitionPipeline, pipeline: transformersPipeline } = require('@xenova/transformers');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * ⚖️ LEGAL WARNING ⚖️
@@ -42,6 +44,42 @@ async function initializeWhisper() {
   console.log('✅ Whisper model loaded!');
 }
 
+// Load banned words from file
+let BANNED_PHRASES = [];
+
+function loadBannedWords() {
+  const fs = require('fs');
+  const path = require('path');
+  const bannedWordsFile = path.join(__dirname, 'banned_words.txt');
+  
+  try {
+    if (fs.existsSync(bannedWordsFile)) {
+      const content = fs.readFileSync(bannedWordsFile, 'utf-8');
+      BANNED_PHRASES = content
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line && !line.startsWith('#')) // Remove empty lines and comments
+        .map(phrase => phrase.toLowerCase()); // Convert to lowercase
+      
+      console.log(`📋 Loaded ${BANNED_PHRASES.length} banned phrases from banned_words.txt`);
+    } else {
+      console.log('⚠️ banned_words.txt not found, using default banned phrases');
+      BANNED_PHRASES = [
+        'bad word 1',
+        'bad word 2',
+        'inappropriate phrase',
+      ];
+    }
+  } catch (error) {
+    console.error('❌ Error loading banned words:', error);
+    BANNED_PHRASES = [
+      'bad word 1',
+      'bad word 2',
+      'inappropriate phrase',
+    ];
+  }
+}
+
 // Create Discord client
 const client = new Client({
   intents: [
@@ -54,7 +92,8 @@ const client = new Client({
 });
 
 // Banned words/phrases - configure these
-const BANNED_PHRASES = [
+// Now loaded from banned_words.txt file
+const BANNED_PHRASES_DEFAULT = [
   'bad word 1',
   'bad word 2',
   'inappropriate phrase',
@@ -83,6 +122,11 @@ client.once('ready', async () => {
   console.log('⚠️  Comply with Discord TOS and local recording laws');
   console.log('⚠️  See LEGAL_NOTICE.md for full requirements');
   console.log('');
+  
+  // Load banned words from file
+  loadBannedWords();
+  
+  // Initialize AI model
   await initializeWhisper();
 });
 
@@ -674,7 +718,47 @@ client.on('messageCreate', async (message) => {
       }
     }
     
-    message.reply(`📊 **Monitoring ${voiceConnections.size} channel(s)**:\n${channels.join('\n')}`);
+    message.reply(
+      `📊 **Monitoring ${voiceConnections.size} channel(s)**:\n${channels.join('\n')}\n\n` +
+      `📋 **Banned phrases loaded:** ${BANNED_PHRASES.length}`
+    );
+  }
+  
+  // !reload - Reload banned words from file
+  if (command === 'reload') {
+    if (!message.member.permissions.has(PermissionFlagsBits.Administrator)) {
+      return message.reply('❌ You need administrator permissions!');
+    }
+    
+    const oldCount = BANNED_PHRASES.length;
+    loadBannedWords();
+    const newCount = BANNED_PHRASES.length;
+    
+    message.reply(
+      `✅ Reloaded banned words file!\n` +
+      `📊 Previous: ${oldCount} phrases\n` +
+      `📊 Current: ${newCount} phrases`
+    );
+  }
+  
+  // !listbanned - Show some banned words (limited for privacy)
+  if (command === 'listbanned') {
+    if (!message.member.permissions.has(PermissionFlagsBits.Administrator)) {
+      return message.reply('❌ You need administrator permissions!');
+    }
+    
+    if (BANNED_PHRASES.length === 0) {
+      return message.reply('📋 No banned phrases loaded.');
+    }
+    
+    const preview = BANNED_PHRASES.slice(0, 10);
+    const remaining = BANNED_PHRASES.length - preview.length;
+    
+    message.reply(
+      `📋 **Banned Phrases** (showing first 10):\n` +
+      preview.map(p => `• \`${p}\``).join('\n') +
+      (remaining > 0 ? `\n\n_...and ${remaining} more. See banned_words.txt for full list._` : '')
+    );
   }
   
   // !setlogs - Set the log channel for violations
@@ -740,7 +824,6 @@ client.on('messageCreate', async (message) => {
 });
 
 // Create audio directory
-const fs = require('fs');
 if (!fs.existsSync('./audio')) {
   fs.mkdirSync('./audio');
 }

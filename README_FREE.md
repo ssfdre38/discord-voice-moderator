@@ -85,14 +85,22 @@ AUTO_MONITOR=false
 
 ### 5. Customize Moderation Rules
 
-Edit `bot.js` (lines 30-35):
-```javascript
-const BANNED_PHRASES = [
-  'your banned',
-  'words here',
-  'inappropriate content',
-];
+The bot reads banned words from `banned_words.txt`:
+
+```bash
+nano banned_words.txt
 ```
+
+Add your banned words (one per line):
+```txt
+inappropriate word
+offensive phrase
+harassment example
+```
+
+The file comes pre-populated with examples. **Customize for your community!**
+
+**See [BANNED_WORDS_GUIDE.md](BANNED_WORDS_GUIDE.md) for detailed configuration guide.**
 
 ### 6. Invite Bot to Server
 
@@ -126,7 +134,9 @@ First run will download the Whisper model (~100MB) - this happens once.
 | `!monitor` | Join and monitor your current voice channel |
 | `!stop` | Stop monitoring your current voice channel |
 | `!stopall` | Stop monitoring ALL voice channels |
-| `!status` | Show which channels are being monitored |
+| `!status` | Show which channels are being monitored + banned word count |
+| `!reload` | Reload banned words from banned_words.txt |
+| `!listbanned` | Show first 10 banned phrases (admin only) |
 | `!testlog` | Send a test message to the log channel |
 | `!setlogs #channel` | Set which channel receives violation logs |
 
